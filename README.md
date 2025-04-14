@@ -1,6 +1,16 @@
 # RECOMMENDATION-SYSTEM
 
+*COMPANY*: CODETECH IT SOLUTIONS
 
+*NAME*: MALIK ASHHAR ALI
+
+*INTERN ID*: CT04WG141
+
+*DOMAIN NAME*: MACHINE LEARNING
+
+*DURATION*: 4 WEEKS
+
+*MENTOR*: NEELA SANTOSH
 
 # 🎬 Movie Recommendation System using Collaborative Filtering & Matrix Factorization
 
