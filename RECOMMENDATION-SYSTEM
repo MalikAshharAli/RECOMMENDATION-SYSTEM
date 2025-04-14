@@ -1,0 +1,43 @@
+import pandas as pd
+import numpy as np
+from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.metrics import mean_squared_error
+from math import sqrt
+from surprise import SVD, Dataset, Reader
+from surprise.model_selection import cross_validate
+columns = ['user_id', 'item_id', 'rating', 'timestamp']
+df = pd.read_csv('https://files.grouplens.org/datasets/movielens/ml-100k/u.data', sep='\t', names=columns)
+
+movies = pd.read_csv('https://files.grouplens.org/datasets/movielens/ml-100k/u.item', sep='|', encoding='latin-1', header=None)
+movies = movies[[0, 1]]
+movies.columns = ['item_id', 'title']
+
+df = pd.merge(df, movies, on='item_id')
+df.head()
+user_movie_matrix = df.pivot_table(index='user_id', columns='title', values='rating')
+user_movie_matrix.fillna(0, inplace=True)
+user_movie_matrix.head()
+user_similarity = cosine_similarity(user_movie_matrix)
+user_similarity_df = pd.DataFrame(user_similarity, index=user_movie_matrix.index, columns=user_movie_matrix.index)
+user_similarity_df.head()
+reader = Reader(rating_scale=(1, 5))
+data = Dataset.load_from_df(df[['user_id', 'item_id', 'rating']], reader)
+
+svd = SVD()
+cross_validate(svd, data, measures=['RMSE', 'MAE'], cv=5, verbose=True)
+trainset = data.build_full_trainset()
+svd.fit(trainset)
+
+uid = str(1)
+iid = str(50)
+pred = svd.predict(uid, iid)
+print(pred)
+from sklearn.model_selection import train_test_split
+
+train_df, test_df = train_test_split(df, test_size=0.2)
+train_matrix = train_df.pivot_table(index='user_id', columns='item_id', values='rating')
+train_matrix.fillna(0, inplace=True)
+
+test_df['prediction'] = test_df['user_id'].map(train_df.groupby('user_id')['rating'].mean())
+rmse = sqrt(mean_squared_error(test_df['rating'], test_df['prediction']))
+print(f"RMSE: {rmse}")
